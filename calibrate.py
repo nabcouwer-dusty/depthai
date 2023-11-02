@@ -978,7 +978,7 @@ class Main:
                                         self.args.rectifiedDisp) # Turn off enable disp rectify
 
             if self.args.debugProcessingMode and self.args.initCalibrationPath:
-                print(f"Initilizing calibration from {self.args.initCalibrationPath}")
+                print(f"Initializing calibration from {self.args.initCalibrationPath}")
                 calibration_handler = dai.CalibrationHandler(self.args.initCalibrationPath)
             elif self.args.noInitCalibration or self.args.debugProcessingMode:
                 calibration_handler = dai.CalibrationHandler()
@@ -1132,7 +1132,6 @@ class Main:
                     # return (False, "EEPROM write Failed!!")
             
             elif len(error_text) == 0 and self.args.debugProcessingMode:
-                date_time_string = datetime.now().strftime("_%m_%d_%y_%H_%M")
                 calib_dest_path = dest_path + '/debug_processing_calibration.json'
                 print(f'Saving Calibration data to {calib_dest_path}')
                 calibration_handler.eepromToJsonFile(calib_dest_path)
