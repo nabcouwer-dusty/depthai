@@ -156,6 +156,8 @@ def parse_args():
                         help="Enable mouse trigger for image capture")
     parser.add_argument('-nic', '--noInitCalibration', default=False, action="store_true",
                         help="Don't take the board calibration for initialization but start with an empty one")
+    parser.add_argument('-icp', '--initCalibrationPath', type=str, default="",
+                        help="Initial calibration file to start from, if running in debug processing mode.")
     parser.add_argument('-trc', '--traceLevel', type=int, default=0,
                         help="Set to trace the steps in calibration. Number from 1 to 5. If you want to display all, set trace number to 10.")
     parser.add_argument('-mst', '--minSyncTimestamp',  type=float, default=0.2,
@@ -191,6 +193,8 @@ def parse_args():
         options.mode = "process"
         if options.board is None:
             raise argparse.ArgumentError(options.board, "Board name (-brd) of camera must be specified in case of using debug mode (-dbg).")
+    if options.noInitCalibration and options.initCalibrationPath:
+        raise argparse.ArgumentError(options.initCalibrationPath, "--noInitCalibration and --initCalibrationPath are mutually exclusive")
     return options
 
 class HostSync:
@@ -975,7 +979,10 @@ class Main:
                                         self.args.cameraMode,
                                         self.args.rectifiedDisp) # Turn off enable disp rectify
 
-            if self.args.noInitCalibration or self.args.debugProcessingMode:
+            if self.args.debugProcessingMode and self.args.initCalibrationPath:
+                print(f"Initilizing calibration from {self.args.initCalibrationPath}")
+                calibration_handler = dai.CalibrationHandler(self.args.initCalibrationPath)
+            elif self.args.noInitCalibration or self.args.debugProcessingMode:
                 calibration_handler = dai.CalibrationHandler()
             else:
                 calibration_handler = self.device.readCalibration()
@@ -1126,6 +1133,16 @@ class Main:
                     cv2.waitKey(0)
                     # return (False, "EEPROM write Failed!!")
             
+            elif len(error_text) == 0 and self.args.debugProcessingMode:
+                date_time_string = datetime.now().strftime("_%m_%d_%y_%H_%M")
+                calib_dest_path = dest_path + '/debug_processing_calibration.json'
+                print(f'Saving Calibration data to {calib_dest_path}')
+                calibration_handler.eepromToJsonFile(calib_dest_path)
+                if self.args.saveCalibPath: 
+                    print(f'Saving Calibration data to {self.args.saveCalibPath}')
+                    Path(self.args.saveCalibPath).parent.mkdir(parents=True, exist_ok=True)
+                    calibration_handler.eepromToJsonFile(self.args.saveCalibPath)
+
             else:
                 if not self.args.debugProcessingMode:
                     self.device.close()
