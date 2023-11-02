@@ -157,7 +157,7 @@ def parse_args():
     parser.add_argument('-nic', '--noInitCalibration', default=False, action="store_true",
                         help="Don't take the board calibration for initialization but start with an empty one")
     parser.add_argument('-icp', '--initCalibrationPath', type=str, default="",
-                        help="Initial calibration file to start from, if running in debug processing mode.")
+                        help="Initial calibration file to start from, if running in debug processing mode. No effect if --noInitCalibration is provided.")
     parser.add_argument('-trc', '--traceLevel', type=int, default=0,
                         help="Set to trace the steps in calibration. Number from 1 to 5. If you want to display all, set trace number to 10.")
     parser.add_argument('-mst', '--minSyncTimestamp',  type=float, default=0.2,
@@ -193,8 +193,6 @@ def parse_args():
         options.mode = "process"
         if options.board is None:
             raise argparse.ArgumentError(options.board, "Board name (-brd) of camera must be specified in case of using debug mode (-dbg).")
-    if options.noInitCalibration and options.initCalibrationPath:
-        raise argparse.ArgumentError(options.initCalibrationPath, "--noInitCalibration and --initCalibrationPath are mutually exclusive")
     return options
 
 class HostSync:
